@@ -1,0 +1,96 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Celeb Lookalike Fun</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .page { display: none; }
+        .active { display: block; }
+    </style>
+</head>
+<body class="bg-gradient-to-r from-pink-300 via-purple-300 to-blue-300 min-h-screen flex items-center justify-center">
+    <!-- Page 1: Greeting -->
+    <div id="page1" class="page active text-center p-6">
+        <h1 class="text-4xl font-bold text-white mb-6">Namaste! 👋</h1>
+        <button onclick="showPage('page2')" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-6 rounded-full text-lg">Shuru Karo</button>
+    </div>
+
+    <!-- Page 2: Question -->
+    <div id="page2" class="page text-center p-6">
+        <h1 class="text-4xl font-bold text-white mb-6">Kya aap jaanna chahte hain ki aap is duniya ke kis celebrity ki tarah dikhte hain? 🤔</h1>
+        <button onclick="showPage('page3')" class="bg-green-400 hover:bg-green-500 text-black font-bold py-3 px-6 rounded-full text-lg mr-4">Haan, batao!</button>
+        <button onclick="showPage('page5')" class="bg-red-400 hover:bg-red-500 text-black font-bold py-3 px-6 rounded-full text-lg">Nahi</button>
+    </div>
+
+    <!-- Page 3: Upload (Real File Input) -->
+    <div id="page3" class="page text-center p-6">
+        <h1 class="text-4xl font-bold text-white mb-6">Apni photo upload karo: 📸</h1>
+        <input type="file" accept="image/*" id="photoUpload" class="mb-4 text-white">
+        <button onclick="showPage('page4')" class="bg-blue-400 hover:bg-blue-500 text-black font-bold py-3 px-6 rounded-full text-lg">Upload aur Dekho</button>
+    </div>
+
+    <!-- Page 4: Meme Video -->
+    <div id="page4" class="page text-center p-6">
+        <h1 class="text-4xl font-bold text-white mb-6">Yeh raha result! 😂</h1>
+        <iframe src="https://www.youtube.com/embed/MmpNTxMOR_Y" width="100%" class="max-w-md mx-auto mb-8" height="360" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+        <p class="text-xl text-white mb-8">(Yeh bas fun ke liye hai, actual match nahi!)</p>
+        <button onclick="showPage('page5')" class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-6 rounded-full text-lg">Done</button>
+    </div>
+
+    <!-- Page 5: Thanks -->
+    <div id="page5" class="page text-center p-6">
+        <h1 class="text-4xl font-bold text-white mb-6">Shukriya! 😄</h1>
+        <p class="text-xl text-white mb-8">Instagram par mujhe follow karo aur masti karo!</p>
+        <a href="https://www.instagram.com/iamparthh09" target="_blank" class="bg-pink-400 hover:bg-pink-500 text-black font-bold py-3 px-6 rounded-full text-lg">Back to Instagram</a>
+    </div>
+
+    <script>
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
